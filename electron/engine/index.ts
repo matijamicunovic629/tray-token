@@ -62,7 +62,7 @@ const createWindow = () => {
 }
 
 const fetchPrices = () => {
-    setInterval(() => {
+    const mainFunc = () => {
 
         sdk.queries
             .price({
@@ -82,7 +82,10 @@ const fetchPrices = () => {
             });
 
 
-    }, FETCH_INTERVAL);
+    };
+
+    setInterval(mainFunc, FETCH_INTERVAL);
+    mainFunc();
 }
 
 
