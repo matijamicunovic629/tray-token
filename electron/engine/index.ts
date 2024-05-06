@@ -42,7 +42,7 @@ const createWindow = () => {
     window.loadURL(path.join("file://", __dirname, "../../electron/notification/container.html"));
     window.setIgnoreMouseEvents(true, { forward: true });
     window.showInactive();
-    window.webContents.openDevTools({ mode: 'detach' });
+    // window.webContents.openDevTools({ mode: 'detach' });
 
     ipcMain.on("make-clickable", (e: any) => {
         window && window.setIgnoreMouseEvents(false);
