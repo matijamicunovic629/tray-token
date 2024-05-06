@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="./animate.min.css"/>
+    <style>
+        @font-face {
+            font-family: 'Roboto';
+            font-weight: normal;
+            font-style: normal;
+            src: url('./Roboto-regular.woff2') format('woff2'),
+            url('./Roboto-regular.woff') format('woff');
+        }
+
+        html {
+            font-family: 'Roboto';
+            font-size: 14px;
+        }
+
+        .notification {
+            cursor: pointer;
+            display: flex;
+            padding: 20px;
+            background-color: #fdefd8;
+            border-radius: 12px;
+            margin: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+
+        .notification.new-client {
+            border: 2px solid red
+        }
+
+
+
+        .notification h1 {
+            font-weight: bold;
+        }
+        .notification .content-wrapper {
+
+        }
+        .notification .logo {
+            width: 50px;
+            height: 50px;
+        }
+        .notification .logo img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-info {
+            display: flex;
+        }
+
+        .photo-wrapper img {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle {
+            width: 10px;
+            height: 10px;
+            background: gray;
+            border-radius: 50%;
+            margin-right: 13px;
+        }
+
+        .location-info {
+            gap: 7px;
+        }
+
+        .location-info img {
+            padding-top: 4px;
+            width: 17px;
+            height: 17px;
+        }
+
+        .person-info > div:not(:first-child) {
+            padding-top: 2px;
+        }
+
+        .person-info > div:nth-child(2) {
+            padding-top: 6px;
+        }
+
+        .person-info > div:nth-child(4) {
+            padding-top: 4px;
+        }
+
+        .cred-info {
+            gap: 7px;
+        }
+
+        .content-wrapper {
+            padding: 0px 0px 0px 20px;
+            max-width: 270px;
+        }
+
+        .project-price {
+            font-size: 22px;
+            font-weight: bolder;
+            position: relative;
+        }
+
+        .project-price.hourly {
+            color: red;
+        }
+
+        .project-price .project-type {
+            border: 1px solid green;
+            color: green;
+            padding: 3px 10px;
+            position: absolute;
+            right: 30px;
+            font-size: 1rem;
+            border-radius: 12px;
+            top: 2px;
+        }
+
+        .username-link:hover, .project-title:hover {
+            color: red;
+        }
+
+        .project-title {
+            font-weight: bolder;
+            padding: 5px 0px;
+        }
+
+        .my-button {
+            background: aquamarine;
+            padding: 6px 38px;
+            border-radius: 20px;
+            margin-left: 8px;        }
+
+        .my-button:hover {
+            background: #41b68c;
+        }
+
+        .project-description {
+            overflow: hidden;
+            max-height: 4.8rem;
+            -webkit-line-clamp: 3;
+            line-height: 1.2rem;
+        }
+
+        .tags-wrapper {
+            display: flex;
+            gap: 6px;
+            padding-top: 4px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+            max-height: 1.7rem;
+            overflow: hidden;
+        }
+
+        .tags-wrapper .tag {
+            border: 1px solid #929292;
+            border-radius: 20px;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .review-and-date-wrapper {
+            position: relative;
+            height: 24px;
+        }
+
+        .reviews-wrapper {
+            position: absolute;
+            left: 0px;
+        }
+
+        .review-svg {
+            fill: #ff6300;
+        }
+
+        .date-wrapper {
+            position: absolute;
+            right: 8px;
+        }
+
+        .reviews-wrapper span, .date-wrapper span {
+            margin-left: 4px;
+        }
+
+    </style>
+    <script>
+
+        const { clipboard } = require('electron');
+
+        function copy2clipboard(event, text) {
+            event.preventDefault();
+            event.stopPropagation();
+            clipboard.writeText(text)
+        }
+
+        function mom(i, str) {
+            return btoa(i + '$@!' + str);
+        }
+
+        function copy2clipboard__(event, userId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            let sharpValue = `piz('${mom(userId, "Hello, I've read your project description carefully")}')`;
+            sharpValue += `\nsetTimeout(() => piz('${mom(userId, "Could I discuss with you?")}'), 3000)`;
+            clipboard.writeText(sharpValue)
+        }
+
+        const ipc = require('electron').ipcRenderer;
+
+        ipc.on('notification-add', (e, html) => {
+            const domParser = new DOMParser();
+            const parsedElement = domParser.parseFromString(html, "text/html").body.firstChild;
+            const container = document.getElementById('notification-container');
+
+            if (parsedElement) {
+                parsedElement.addEventListener('mouseenter', () => {
+                    ipc.send('make-clickable');
+                })
+                parsedElement.addEventListener('mouseleave', () => {
+                    ipc.send('make-unclickable')
+                })
+                parsedElement.addEventListener('click', () => {
+                    ipc.send('notification-clicked', parsedElement.getAttribute('data-notification-id'));
+                })
+                container.insertBefore(parsedElement, container.firstChild);
+            }
+        });
+
+        ipc.on('notification-remove', (e, id) => {
+            const notification = document.querySelector(`[data-notification-id="${id}"]`);
+
+            if (notification) {
+                notification.parentElement.removeChild(notification);
+            }
+        })
+
+        ipc.on('custom-styles', (e, css) => {
+            const style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = css;
+
+            document.querySelector('head').appendChild(style);
+        })
+    </script>
+</head>
+
+<body>
+<div id="notification-container"></div>
+</body>
+
+</html>
