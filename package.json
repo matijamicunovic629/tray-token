@@ -21,6 +21,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@definedfi/sdk": "^0.5.1",
     "@electron-forge/cli": "^7.3.1",
     "electron-updater": "^6.1.8",
     "sockjs-client": "^1.6.1",

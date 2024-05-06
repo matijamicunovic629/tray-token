@@ -1,154 +1,99 @@
-// @ts-ignore
-import SockJS from 'sockjs-client';
-import {extractNecessaryDataFromMessage, getNecessaryInfosByUserId} from "./apis";
 import {createMyNotification} from "../notification";
 import notification from "../notification/Notification";
+import {BrowserWindow, BrowserWindowConstructorOptions, ipcMain, screen} from "electron";
+import path from "path";
+import {Defined} from "@definedfi/sdk";
 
-let sock: any = null;
-let mapProjectLink: any = {};
+let window: BrowserWindow | null = null;
+const CONTAINER_WIDTH = 400;
+const FETCH_INTERVAL = 1000 * 20;
+const DEFINED_API_KEY = '9dac34318cfc1c1a3d4f7dd76a126a7d17882d81';
+let ready = false;
+const sdk = new Defined(DEFINED_API_KEY || "");
 
-const checkNewClientProject = (notificationOption) => {
+const createWindow = () => {
 
-    if (notificationOption.country === 'India' ||
-        notificationOption.country === 'Pakistan' ||
-        notificationOption.country === 'Bangladesh')
-        return false;
+    const display = screen.getPrimaryDisplay();
+    const displayWidth = display.workArea.x + display.workAreaSize.width;
+    const displayHeight = display.workArea.y + display.workAreaSize.height;
+    let options: BrowserWindowConstructorOptions = {};
 
-    if (notificationOption.projectType === 'hourly' &&
-        notificationOption.maxBudget > 0 &&
-        notificationOption.maxBudget < 15)
-        return false;
+    options.height = displayHeight;
+    options.width = CONTAINER_WIDTH;
+    options.alwaysOnTop = true;
+    options.skipTaskbar = true;
+    options.resizable = false;
+    options.minimizable = false;
+    options.fullscreenable = false;
+    options.focusable = false;
+    options.show = false;
+    options.frame = false;
+    options.transparent = true;
+    options.x = displayWidth - CONTAINER_WIDTH;
+    options.y = displayHeight - 30;
+    options.webPreferences = {
+        nodeIntegration: true,
+        contextIsolation: false,
+    }; // Since we're not displaying untrusted content
+       // (all links are opened in a real browser window), we can enable this.
 
+    window = new BrowserWindow(options);
+    window.setVisibleOnAllWorkspaces(true);
+    window.loadURL(path.join("file://", __dirname, "../../electron/notification/container.html"));
+    window.setIgnoreMouseEvents(true, { forward: true });
+    window.showInactive();
+    window.webContents.openDevTools({ mode: 'detach' });
 
-    if (notificationOption.projectType === 'fixed' &&
-        notificationOption.minBudget < 250)
-        return false;
+    ipcMain.on("make-clickable", (e: any) => {
+        window && window.setIgnoreMouseEvents(false);
+    });
 
-    // registrationDate > 1000
-    if (Date.now() - notificationOption.registrationDate.getTime() > 864000000)
-        return false;
+    ipcMain.on("make-unclickable", (e: any) => {
+        window && window.setIgnoreMouseEvents(true, { forward: true });
+    });
 
-    notificationOption.isNewClient = true;
-    return true;
+    window.webContents.on("did-finish-load", () => {
+        ready = true;
+    });
+
+    window.on("closed", () => {
+        window = null;
+    });
 }
 
-const checkProject = (notificationOption) => {
+const fetchPrices = () => {
+    setInterval(() => {
 
-    if (mapProjectLink[notificationOption.projectLinkUrl]) // stop duplication
-        return false;
+        sdk.queries
+            .price({
+                inputs: [
+                    { address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", networkId: 1 }, // WBTC
+                    { address: "0x576e2bed8f7b46d34016198911cdf9886f78bea7", networkId: 1 }, // MAGA
+                    { address: "0x7039cd6d7966672f194e8139074c3d5c4e6dcf65", networkId: 1 }, // str
+                    { address: "0x79ebc9a2ce02277a4b5b3a768b1c0a4ed75bd936", networkId: 56 }, // cg
+                    { address: "0x6982508145454ce325ddbe47a25d4ec3d2311933", networkId: 1 }, // pepe
+                    { address: "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5", networkId: 1399811149 }, // mew
+                    { address: "AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr", networkId: 1399811149 }, // slm
+                ],
+            })
+            .then((response) => {
+                console.log("update", response);
+                window?.webContents.send('update-message', response.getTokenPrices)
+            });
 
-    mapProjectLink[notificationOption.projectLinkUrl] = true;
 
-    // country filter
-    if (notificationOption.country === 'India' ||
-        notificationOption.country === 'Pakistan' ||
-        notificationOption.country === 'Bangladesh')
-        return false;
-
-    if (notificationOption.isFreelancer)
-        return true;
-
-    return false;
-
-/*
-    // verified filter
-    if (!notificationOption.payment_verified /!*||
-        !notificationOption.deposit_made*!/)
-        return false;
-
-    // price filter
-    if (notificationOption.projectType === 'hourly' &&
-        notificationOption.maxBudget > 0 &&
-        notificationOption.maxBudget < 15)
-        return false;
-
-    if (notificationOption.projectType === 'fixed' &&
-        notificationOption.maxBudget < 150
-    )
-        return false;
-
-    // review filter
-    if (notificationOption.reviewCount > 50)
-        return false;
-
-    // check submitted time
-    if (Date.now() - notificationOption.timeSubmitted * 1000 > 600000)
-        return false;
-
-    // check review
-    if (notificationOption.isPoorClient)
-        return false;
-*/
-
-    return true;
+    }, FETCH_INTERVAL);
 }
 
-const handleProject = async (projectData) => {
-
-    const userId = projectData.userId;
-    const data = await getNecessaryInfosByUserId(userId);
-    const exractedData = extractNecessaryDataFromMessage(projectData);
-    console.log("__________________________")
-    const notificationOption = {
-        ...data,
-        ...exractedData
-    };
-    console.log(notificationOption)
-    console.log("__________________________")
-    if (checkProject(notificationOption)/* || checkNewClientProject(notificationOption)*/) {
-        createMyNotification(notificationOption);
-    }
-}
-
-const initSockJS = () => {
-
-    const requestArray = [
-        `{"channel":"auth","body":{"hash2":"YHYZMEcVNy1K7ZtGFyEqv3v96pk1vRkAGP7R41QIeGk=","user_id":75346685}}`,
-        `{"channel":"onlineoffline","body":{"route":"getsub","users":[]}}`,
-        `{"channel":"channels","body":{"channels":[3,6,7,9,13,15,51,59,77,92,106,113,116,147,237,335,343,500,598,669,704,759,979,1092,1119,1126,2370,2372,2376,2397,2630,2631,2632]}}`
-    ];
-
-    sock = new SockJS("https://notifications.freelancer.com");
-
-    sock.onopen = (e) => {
-        console.log("socket onOpen", e);
-
-        for(let i = 0; i < requestArray.length; i ++) {
-            sock.send(requestArray[i]);
-        }
-    };
-
-    sock.onclose = (e) => {
-        console.log("socket onClose", e);
-
-        setTimeout(() => {
-            console.log("Attempting to reconnect...");
-            initSockJS();
-        }, 2000);
-    };
-
-    sock.onmessage = (e) => {
-        console.log("onMessage", e);
-        try {
-
-            const message = JSON.parse(e.data);
-            if (message.channel === 'user' && message.body.type === 'project') {
-                handleProject(message.body.data);
-            }
-
-        } catch(e) {
-
-        }
-    };
-
-    sock.onerror = (e) => {
-        console.log("socket onError", e);
-    };
-
-}
 
 export const runEngine = () => {
-
-    initSockJS();
-
+    createWindow();
+    fetchPrices();
+/*
+    setTimeout(() => {
+        window?.webContents.send('update-message', {
+            token0: 0.33
+        })
+    }, 2000);
+*/
 }

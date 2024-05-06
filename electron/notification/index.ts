@@ -2,7 +2,6 @@ import Notification from "./Notification";
 import NotificationManager from "./NotificationManager";
 import INotificationOptions from "./INotificationOptions";
 import NotificationContainer from "./NotificationContainer";
-
 /**
  * Spawns a new notification.
  * Warning: You MUST use this library from another
