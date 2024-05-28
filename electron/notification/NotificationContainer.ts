@@ -20,7 +20,7 @@ class NotificationContainer {
    * @static
    * @memberof NotificationContainer
    */
-  public static CONTAINER_WIDTH: number = 300;
+  public static CONTAINER_WIDTH: number = 500;
   /**
    * Custom CSS styles to add to the container HTML.
    *

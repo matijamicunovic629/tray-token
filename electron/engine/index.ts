@@ -5,7 +5,7 @@ import path from "path";
 import {Defined} from "@definedfi/sdk";
 
 let window: BrowserWindow | null = null;
-const CONTAINER_WIDTH = 400;
+const CONTAINER_WIDTH = 450;
 const FETCH_INTERVAL = 1000 * 20;
 const DEFINED_API_KEY = '9dac34318cfc1c1a3d4f7dd76a126a7d17882d81';
 let ready = false;
@@ -69,6 +69,7 @@ const fetchPrices = () => {
                 inputs: [
                     { address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", networkId: 1 }, // WBTC
                     { address: "0x576e2bed8f7b46d34016198911cdf9886f78bea7", networkId: 1 }, // MAGA
+                    { address: "0x766d2fcECe1E3eeF32aae8711ab886eE95fd5B2A", networkId: 1 }, // MVP
                     { address: "0x7039cd6d7966672f194e8139074c3d5c4e6dcf65", networkId: 1 }, // str
                     { address: "0x79ebc9a2ce02277a4b5b3a768b1c0a4ed75bd936", networkId: 56 }, // cg
                     { address: "0x6982508145454ce325ddbe47a25d4ec3d2311933", networkId: 1 }, // pepe

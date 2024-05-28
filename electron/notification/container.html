@@ -31,6 +31,7 @@
         }
 
         .main-wrapper {
+            /*opacity: 0.2;*/
             margin-left: 10px;
             background: #313030;
             color: lightgrey;
@@ -40,14 +41,21 @@
             float: right;
         }
 
+        /*
+        .main-wrapper:hover {
+            opacity: .7;
+        }
+        */
+
         .main-wrapper .t-item {
             margin-left: 8px;
             display: flex;
+            color: #999999;
         }
 
         .main-wrapper .t-item span {
             margin-right: 2px;
-            color: #999999;
+            color: #777;
         }
     </style>
 </head>
@@ -61,6 +69,10 @@
     </div>
     <div class="t-item">
         <span>MG</span>
+        <div>0.05</div>
+    </div>
+    <div class="t-item">
+        <span>MVP</span>
         <div>0.05</div>
     </div>
     <div class="t-item">
@@ -134,19 +146,22 @@
                 case 1: // MAGA
                     price = formatNumberByFrac(price, 2);
                     break;
-                case 2: // str
+                case 2: // MVP
+                    price = formatNumberByFrac(price, 2);
+                    break;
+                case 3: // str
                     price = formatNumberByFrac(price * 10, 3);
                     break;
-                case 3: // cg
+                case 4: // cg
                     price = formatNumberByFrac(price * 1e9, 3);
                     break;
-                case 4: // pepe
+                case 5: // pepe
                     price = formatNumberByFrac(price * 1e4, 3);
                     break;
-                case 5: // mew
+                case 6: // mew
                     price = formatNumberByFrac(price * 10, 3);
                     break;
-                case 6: // SLM
+                case 7: // SLM
                     price = formatNumberByFrac(price, 4);
                     break;
                 default:
