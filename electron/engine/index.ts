@@ -5,7 +5,7 @@ import path from "path";
 import {Defined} from "@definedfi/sdk";
 
 let window: BrowserWindow | null = null;
-const CONTAINER_WIDTH = 450;
+const CONTAINER_WIDTH = 560;
 const FETCH_INTERVAL = 1000 * 20;
 const DEFINED_API_KEY = '9dac34318cfc1c1a3d4f7dd76a126a7d17882d81';
 let ready = false;
@@ -75,6 +75,8 @@ const fetchPrices = () => {
                     { address: "0x6982508145454ce325ddbe47a25d4ec3d2311933", networkId: 1 }, // pepe
                     { address: "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5", networkId: 1399811149 }, // mew
                     { address: "AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr", networkId: 1399811149 }, // slm
+                    { address: "0x59f4f336bf3d0c49dbfba4a74ebd2a6ace40539a", networkId: 1 }, // cat coin
+                    { address: "0x2077D81d0c5258230D5a195233941547cB5f0989", networkId: 1 }, // TROG
                 ],
             })
             .then((response) => {

@@ -95,6 +95,14 @@
         <span>SLM</span>
         <div>0.05</div>
     </div>
+    <div class="t-item">
+        <span>CC</span>
+        <div>0.05</div>
+    </div>
+    <div class="t-item">
+        <span>TG</span>
+        <div>0.05</div>
+    </div>
 </div>
 </body>
 <!--<script src="./jquery-3.7.1.min.js"/>-->
@@ -163,6 +171,12 @@
                     break;
                 case 7: // SLM
                     price = formatNumberByFrac(price, 4);
+                    break;
+                case 8: // CC
+                    price = formatNumberByFrac(price * 1e8, 4);
+                    break;
+                case 9: // TROG
+                    price = formatNumberByFrac(price * 1e3, 3);
                     break;
                 default:
                     price = formatNumberByFrac(price, 3);
